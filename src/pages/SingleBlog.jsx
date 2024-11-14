@@ -1,12 +1,13 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { FaLongArrowAltDown } from "react-icons/fa";
 import { toast } from "react-toastify";
 import UserComments from "../components/userComments/UserComments";
 import { useRef } from "react";
 import "animate.css";
 import { useGlobalContext } from "../context/useUserContext";
+const { FaLongArrowAltDown } = await import('react-icons/fa');
+
 
 const SingleBlog = () => {
   const [comments, setComments] = useState([]);
