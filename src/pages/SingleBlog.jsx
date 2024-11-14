@@ -6,7 +6,7 @@ import UserComments from "../components/userComments/UserComments";
 import { useRef } from "react";
 import "animate.css";
 import { useGlobalContext } from "../context/useUserContext";
-const { FaLongArrowAltDown } = await import('react-icons/fa');
+import { FaArrowAltCircleDown } from "react-icons/fa";
 
 
 const SingleBlog = () => {
@@ -232,7 +232,7 @@ const SingleBlog = () => {
         {comments.length > 0 && (
           <div className="flex items-center justify-center py-1 gap-1 text-xl md:text-2xl border-b-2">
             <p>Users Comments </p>
-            <FaLongArrowAltDown />
+            <FaArrowAltCircleDown />
           </div>
         )}
         {comments.length > 0 &&
