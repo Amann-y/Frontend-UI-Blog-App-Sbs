@@ -15,6 +15,8 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [blogs, setBlogs] = useState([]);
 
+  console.log(import.meta.env.VITE_BACKEND_URL)
+
   // Fetch blogs using Axios
   const fetchBlogs = async () => {
     setLoading(true);
