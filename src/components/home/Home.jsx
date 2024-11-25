@@ -15,7 +15,6 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [blogs, setBlogs] = useState([]);
 
-  console.log(import.meta.env.VITE_BACKEND_URL)
 
   // Fetch blogs using Axios
   const fetchBlogs = async () => {
@@ -25,7 +24,7 @@ const Home = () => {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/blogs`
       );
-      console.log(response);
+      
       setBlogs(response?.data?.blogs); // Adjust based on your API response structure
     } catch (err) {
       setError(err);
@@ -105,14 +104,14 @@ const Home = () => {
         }
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 py-2 gap-3 container mx-auto">
-          {currentBlogs.map((blogData) => {
+          {currentBlogs.map((blogData,ind) => {
             const isMore = expandedItems[blogData._id];
             const trimDescription =
               blogData?.description.substring(0, 120) + "...";
 
             return (
               <BlogCard
-                key={blogData._id} // Use a unique key
+                key={blogData._id+ind} // Use a unique key
                 blogData={blogData}
                 isMore={isMore}
                 trimDescription={trimDescription}

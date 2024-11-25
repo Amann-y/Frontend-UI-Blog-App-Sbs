@@ -12,7 +12,7 @@ const UpdateBlog = () => {
     description: location?.state?.description || "",
     imgUrl: location?.state?.imgUrl || "",
   });
-
+  const [imgFile, setImgFile] = useState(null); // Track the selected file
   const token = localStorage.getItem("Blog-Token");
   const navigate = useNavigate();
 
@@ -26,28 +26,56 @@ const UpdateBlog = () => {
     setData({ ...data, [name]: value });
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      // Check if the image size is less than 500KB
+      if (file.size > 500 * 1024) {
+        toast.error("Image size must be less than 500KB");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setData({ ...data, imgUrl: reader.result });
+        setImgFile(file); // Save the file for validation
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !data.title ||
-      !data.categoryTitle ||
-      !data.description ||
-      !data.imgUrl
-    ) {
-      return toast.error("All fields are required");
+    // Check if an image is selected
+    if (!data.imgUrl && !imgFile) {
+      return toast.error("Please select an image.");
+    }
+
+    if (!data.title || !data.categoryTitle || !data.description) {
+      return toast.error("All fields are required.");
     }
 
     setLoading(true);
 
     try {
+      const formData = new FormData();
+      // If there's a new image selected, append it to the form data
+      if (imgFile) {
+        formData.append("imgUrl", imgFile); // Assuming the API expects the file under "image"
+      }
+      formData.append("title", data.title);
+      formData.append("categoryTitle", data.categoryTitle);
+      formData.append("description", data.description);
+
       const response = await axios.put(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/user-blog/${location?.state?._id}`,
-        data,
+        formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data", // Use form data for file uploads
           },
         }
       );
@@ -69,7 +97,7 @@ const UpdateBlog = () => {
         <h2 className="text-xl md:text-2xl font-bold md:mb-6 text-center animate-bounce dark:text-black">
           {location?.pathname === "/update-blog" ? "Update A Blog" : ""}
         </h2>
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit} encType="multipart/form-data">
           <div>
             <label
               htmlFor="title"
@@ -109,15 +137,28 @@ const UpdateBlog = () => {
               htmlFor="imgUrl"
               className="block text-sm font-medium text-gray-700"
             >
-              Image Url
+              Image
             </label>
+
+            {/* Display the image preview if imgUrl exists */}
+            {data.imgUrl ? (
+              <div className="mb-2 md:w-40">
+                <img
+                  src={data.imgUrl}
+                  alt=""
+                  className="max-w-full h-auto rounded-md"
+                />
+              </div>
+            ) : (
+              <p className="text-gray-500">No image selected</p>
+            )}
+
+            {/* File input to upload a new image */}
             <input
-              type="text"
-              id="imgUrl"
-              name="imgUrl"
-              value={data.imgUrl}
+              type="file"
+              accept=".jpeg, .jpg, .png, image/jpeg, image/jpg, image/png"
+              onChange={handleImageChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:text-black"
-              onChange={handleChange}
             />
           </div>
 
@@ -135,6 +176,7 @@ const UpdateBlog = () => {
               value={data.description}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:text-black"
               onChange={handleChange}
+              style={{ resize: "none" }}
             ></textarea>
           </div>
 
@@ -158,3 +200,6 @@ const UpdateBlog = () => {
 };
 
 export default UpdateBlog;
+
+
+

@@ -174,7 +174,7 @@ const SingleBlog = () => {
     <section className="container mx-auto pb-2">
       <div className="w-full md:h-96 rounded">
         <img
-          src={imgUrl}
+           src={`data:image/jpeg;base64,${imgUrl}`}
           alt={title}
           className="object-contain w-full h-auto max-h-96 rounded shadow-md"
         />
