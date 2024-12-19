@@ -76,7 +76,7 @@ const Login = () => {
   return (
     <div className="flex justify-center items-center my-2 mx-2">
       <div className="w-full max-w-md p-4 bg-slate-300 rounded-lg shadow-lg">
-        <h2 className="text-xl md:text-2xl font-bold md:mb-6 text-center animate-bounce dark:text-black">
+        <h2 className="text-xl md:text-2xl font-bold md:mb-6 text-center animate__animated animate__slow animate__pulse animate__infinite dark:text-black">
           Login Form
         </h2>
         <form className="space-y-4" onSubmit={handleSubmit}>

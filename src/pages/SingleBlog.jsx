@@ -7,6 +7,7 @@ import { useRef } from "react";
 import "animate.css";
 import { useGlobalContext } from "../context/useUserContext";
 import { FaArrowDown } from "react-icons/fa";
+import { IoIosSave } from "react-icons/io";
 
 
 const SingleBlog = () => {
@@ -118,6 +119,29 @@ const SingleBlog = () => {
     }
   };
 
+  const handleSaveBlog = async () => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/blog-save/${_id}`,
+        {}, // This can be an empty object if no data is needed
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+     
+      // if (response?.data?.success) {
+      //   setLike(response?.data?.likes?.likes);
+      //   setLikeFlag(response.data.likes.likes.some(ele=>ele==userId));
+      //   toast.success(response?.data?.message);
+      // }
+    } catch (error) {
+      toast.error(error?.response?.data?.message);
+    }
+  };
+
   const getLikes = async () => {
     try {
       const response = await axios.get(
@@ -129,7 +153,7 @@ const SingleBlog = () => {
           },
         }
       );
-     
+   
       if (response?.data?.success) {
         setLike(response?.data?.likes);
         setLikeFlag(response.data.likes.some(ele=>ele._id==userId));
@@ -171,7 +195,7 @@ const SingleBlog = () => {
   },[])
 
   return (
-    <section className="container mx-auto pb-2">
+    <section className="container mx-auto py-2 px-2">
       <div className="w-full md:h-96 rounded">
         <img
            src={`data:image/jpeg;base64,${imgUrl}`}
@@ -187,7 +211,7 @@ const SingleBlog = () => {
           {description}
         </p>
       </div>
-      <div className="rounded px-2 py-1 md:px-1 flex items-center flex-wrap justify-between mt-1 font-semibold shadow-md animate__animated animate__fadeInRight animate__slower">
+      <div className="rounded px-2 py-1 md:px-1 flex items-center flex-wrap justify-between mt-1 font-semibold shadow-md animate__animated animate__fadeInRight animate__slower gap-2">
         <div className="cursor-pointer flex flex-col" onClick={likeHandler}>
           <i
             className={`fa ${
@@ -198,6 +222,9 @@ const SingleBlog = () => {
           </i>
           <p>{like?.length > 0 && like?.length}</p>
         </div>
+        <div className="text-2xl md:text-3xl" onClick={handleSaveBlog}>
+            <IoIosSave title="Save"/>
+          </div>
         <div className="flex flex-col">
           <p>CreatedBy : {nameOfCreator}</p>
           <p>Email : {emailOfCreator}</p>
