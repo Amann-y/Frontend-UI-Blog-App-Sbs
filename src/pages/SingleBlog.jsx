@@ -1,19 +1,21 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import UserComments from "../components/userComments/UserComments";
-import { useRef } from "react";
 import "animate.css";
 import { useGlobalContext } from "../context/useUserContext";
 import { FaArrowDown } from "react-icons/fa";
 import { IoIosSave } from "react-icons/io";
-
+import { IoSaveOutline } from "react-icons/io5";
 
 const SingleBlog = () => {
   const [comments, setComments] = useState([]);
   const [like, setLike] = useState([]);
   const [likeFlag, setLikeFlag] = useState(false);
+  const [saveBlog, setSaveBlog] = useState([]);
+  const [saveBlogFlag, setSaveBlogFlag] = useState(false);
+
   const {
     state: {
       imgUrl,
@@ -28,11 +30,10 @@ const SingleBlog = () => {
   } = useLocation();
 
   const token = localStorage.getItem("Blog-Token");
-
   const userComment = useRef(null);
-
   const { userId } = useGlobalContext();
 
+  // Fetch comments
   const fetchComments = async () => {
     try {
       const response = await axios.get(
@@ -46,9 +47,9 @@ const SingleBlog = () => {
     }
   };
 
+  // Submit comment
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/comment/create-comment`,
@@ -73,10 +74,13 @@ const SingleBlog = () => {
     }
   };
 
+  // Delete comment
   const handleDelete = async (id) => {
     try {
       const response = await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/comment/delete-comment/${id}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/v1/comment/delete-comment/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -85,7 +89,6 @@ const SingleBlog = () => {
         }
       );
       if (response?.data?.success) {
-        // Remove the deleted comment from the state
         setComments((prevComments) =>
           prevComments.filter((comment) => comment._id !== id)
         );
@@ -96,11 +99,12 @@ const SingleBlog = () => {
     }
   };
 
+  // Handle like
   const likeHandler = async () => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/user-blog/like/${_id}`,
-        {}, // This can be an empty object if no data is needed
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -108,10 +112,12 @@ const SingleBlog = () => {
           },
         }
       );
-     
+
       if (response?.data?.success) {
         setLike(response?.data?.likes?.likes);
-        setLikeFlag(response.data.likes.likes.some(ele=>ele==userId));
+        setLikeFlag(
+          response?.data?.likes?.likes.some((ele) => ele == userId)
+        );
         toast.success(response?.data?.message);
       }
     } catch (error) {
@@ -119,11 +125,12 @@ const SingleBlog = () => {
     }
   };
 
+  // Handle save blog
   const handleSaveBlog = async () => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/blog-save/${_id}`,
-        {}, // This can be an empty object if no data is needed
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -131,17 +138,20 @@ const SingleBlog = () => {
           },
         }
       );
-     
-      // if (response?.data?.success) {
-      //   setLike(response?.data?.likes?.likes);
-      //   setLikeFlag(response.data.likes.likes.some(ele=>ele==userId));
-      //   toast.success(response?.data?.message);
-      // }
+
+      if (response?.data?.success) {
+        setSaveBlog(response?.data?.result?.saveBlogs);
+        setSaveBlogFlag(
+          response?.data?.result?.saveBlogs.some((ele) => ele == _id)
+        );
+        toast.success(response?.data?.message);
+      }
     } catch (error) {
       toast.error(error?.response?.data?.message);
     }
   };
 
+  // Get likes on initial load
   const getLikes = async () => {
     try {
       const response = await axios.get(
@@ -153,52 +163,81 @@ const SingleBlog = () => {
           },
         }
       );
-   
+
       if (response?.data?.success) {
         setLike(response?.data?.likes);
-        setLikeFlag(response.data.likes.some(ele=>ele._id==userId));
-        toast.success(response?.data?.message);
+        setLikeFlag(
+          response.data.likes.some((ele) => ele._id === userId) // Ensure proper comparison with userId
+        );
       }
     } catch (error) {
       toast.error(error?.response?.data?.message);
     }
   };
 
+  // Update view count
   const viewsCount = async () => {
     try {
-      const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/blog/views/${_id}`,{}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/blog/views/${_id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
     } catch (error) {
-      // console.error("Error updating view count:", error);
-      // toast.error(error?.response?.data?.message || "Failed to update view count");
+      toast.error("Failed to update view count");
     }
   };
-  
 
+  // Get saved blogs
+  const getSavedBlogs = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/saved-blogs`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response?.data?.success) {
+        setSaveBlog(response?.data?.saveBlogs);
+        setSaveBlogFlag(
+          response?.data?.saveBlogs.some((ele) => ele === _id) // Ensure proper comparison with _id
+        );
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message);
+    }
+  };
+
+  // Initial API calls
   useEffect(() => {
     fetchComments();
     getLikes();
+    getSavedBlogs();
   }, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     const id = setTimeout(() => {
-      viewsCount()
+      viewsCount();
     }, 30000);
-
-    return ()=>{
-      clearTimeout(id)
-    }
-  },[])
+    return () => {
+      clearTimeout(id);
+    };
+  }, []);
 
   return (
     <section className="container mx-auto py-2 px-2">
       <div className="w-full md:h-96 rounded">
         <img
-           src={`data:image/jpeg;base64,${imgUrl}`}
+          src={`data:image/jpeg;base64,${imgUrl}`}
           alt={title}
           className="object-contain w-full h-auto max-h-96 rounded shadow-md"
         />
@@ -211,23 +250,36 @@ const SingleBlog = () => {
           {description}
         </p>
       </div>
-      <div className="rounded px-2 py-1 md:px-1 flex items-center flex-wrap justify-between mt-1 font-semibold shadow-md animate__animated animate__fadeInRight animate__slower gap-2">
+      <div className="rounded px-2 py-1 md:px-1 flex items-center flex-wrap justify-between my-2 font-semibold shadow-md animate__animated animate__fadeInRight animate__slower gap-2">
         <div className="cursor-pointer flex flex-col" onClick={likeHandler}>
           <i
-            className={`fa ${
-              likeFlag && "text-red-400"
-            } text-2xl md:text-3xl`}
+            className={`fa ${likeFlag ? "text-red-400" : "text-gray-400"} text-2xl md:text-3xl`}
           >
             &#xf087;
           </i>
           <p>{like?.length > 0 && like?.length}</p>
         </div>
-        <div className="text-2xl md:text-3xl" onClick={handleSaveBlog}>
-            <IoIosSave title="Save"/>
-          </div>
+
+        <div
+          className={`text-2xl md:text-4xl cursor-pointer ${
+            saveBlogFlag ? "text-red-500" : "text-gray-400"
+          }`}
+          onClick={handleSaveBlog}
+        >
+          <IoIosSave
+            title="Save"
+            size={"2.1rem"}
+            className={`transition-all ${
+              saveBlogFlag
+                ? "bg-red-500 text-white rounded-full p-2"
+                : "bg-transparent"
+            }`}
+          />
+        </div>
+
         <div className="flex flex-col">
-          <p>CreatedBy : {nameOfCreator}</p>
-          <p>Email : {emailOfCreator}</p>
+          <p>Created By: {nameOfCreator}</p>
+          <p>Email: {emailOfCreator}</p>
         </div>
       </div>
 
@@ -255,15 +307,16 @@ const SingleBlog = () => {
           </div>
         )}
       </div>
+
       <div className="mx-1">
         {comments.length > 0 && (
           <div className="flex items-center justify-center py-1 gap-1 text-xl md:text-2xl border-b-2">
-            <p>Users Comments </p>
-            <FaArrowDown/>
+            <p>Users Comments</p>
+            <FaArrowDown />
           </div>
         )}
         {comments.length > 0 &&
-          comments?.reverse().map((ele) => {
+          comments?.map((ele) => {
             return (
               <UserComments
                 key={ele._id}
@@ -278,3 +331,4 @@ const SingleBlog = () => {
 };
 
 export default SingleBlog;
+
