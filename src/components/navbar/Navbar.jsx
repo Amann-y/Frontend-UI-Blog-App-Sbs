@@ -1,17 +1,19 @@
-// src/Navbar.tsx
-// src/components/Navbar.js
+
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // If you're using react-router for routing
+import { Link, useNavigate ,useLocation} from "react-router-dom"; 
 import Logo from "../../assets/amann2.png";
 import { useGlobalContext } from "../../context/useUserContext";
+import { useEffect } from "react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery,setSearchQuery] = useState(null)
 
   const token = localStorage.getItem("Blog-Token");
   const isAuth = localStorage.getItem("isAuth")
 
   const navigate = useNavigate();
+  const location = useLocation()
 
   const {removeUserData, theme, toggleTheme, avatar} = useGlobalContext();
 
@@ -26,11 +28,17 @@ const Navbar = () => {
     navigate("/");
   };
 
+  useEffect(()=>{
+    if(location.pathname != "/search"){
+      setSearchQuery(null)
+    }
+  },[location.pathname])
+
   return (
     <nav className="w-full bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90%  text-white">
       <div className="max-w-7xl mx-auto px-2 py-2 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-14">
-          <div className="flex-1 flex items-center  sm:items-stretch sm:justify-start md:justify-between">
+          <div className="flex-1 flex items-center gap-2 flex-wrap  sm:items-stretch sm:justify-start md:justify-between">
             <div className="">
               <Link to="/" className="">
                 <img
@@ -40,6 +48,22 @@ const Navbar = () => {
                 />
               </Link>
             </div>
+
+        <div className="flex items-center">
+                  <input className="p-1 md:px-2 w-full rounded-md md:rounded-full shadow focus:border-violet-500 outline-none text-black" placeholder="Search blogs"
+                  value={searchQuery ? searchQuery : ""}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search blogs"
+                  onKeyDown={(e)=>{
+                    if(e.code=="Enter"){
+                      if(searchQuery.trim()){
+                        navigate(`/search?search=${searchQuery}`)
+                      }
+                    }
+                  }}
+                  />
+            </div>
+
             <div className="hidden sm:flex sm:ml-6">
               <div className="flex space-x-4 animate__animated animate__fadeInDown animate__slower">
                 <Link

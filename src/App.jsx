@@ -4,6 +4,7 @@ import "./App.css"
 import useOnlineNotification from './utils/useOnlineNotification';
 import OnlineNotification from './components/OnlineNotification/OnlineNotification';
 
+
 // Lazy-loaded components
 const Navbar = React.lazy(() => import('./components/navbar/Navbar'));
 const Home = React.lazy(() => import('./components/home/Home'));
@@ -21,6 +22,7 @@ const About = React.lazy(() => import('./pages/About'));
 const ForgotPassword = React.lazy(()=>import('./pages/ForgotPassword'))
 const ResetPassword = React.lazy(()=>import('./pages/ResetPassword'))
 const EmailVerification = React.lazy(()=>import('./pages/EmailValidation'))
+const SearchBlogs = React.lazy(()=>import('./pages/SearchBlogs'))
 
 const App = () => {
   const isOnline = useOnlineNotification()
@@ -45,6 +47,7 @@ const App = () => {
           <Route path="/forgot-password" element={<ForgotPassword/>}/>
           <Route path="/api/v1/user/reset/:id/:token" element={<ResetPassword/>}/>
           <Route path="/account/verify-email" element={<EmailVerification/>}/>
+          <Route path="/search" element={<SearchBlogs/>}/>
 
           <Route element={<PrivatePages />}>
             <Route path="/single-blog" element={<SingleBlog />} />
