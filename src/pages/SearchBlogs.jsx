@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useState } from "react";
@@ -11,6 +11,10 @@ const SearchBlogs = () => {
   const query = searchParams.get("search");
   const [blogs, setBlogs] = useState([]);
 
+  const {tag} = useParams()
+
+  const q = tag ? tag.toLowerCase().replace(" ","-") : query
+
   useEffect(() => {
     if (query) {
       async function fetchSearchBlogs() {
@@ -18,12 +22,12 @@ const SearchBlogs = () => {
           const res = await axios.get(
             `${
               import.meta.env.VITE_BACKEND_URL
-            }/api/v1/blog/search-blogs?search=${query}`
+            }/api/v1/blog/search-blogs?search=${q}`
           );
           setBlogs(res?.data?.blogs);
         } catch (error) {
           setBlogs([]);
-          // toast.error(error?.response?.data?.message);
+          toast.error(error?.response?.data?.message);
         }
       }
       fetchSearchBlogs();
@@ -32,7 +36,7 @@ const SearchBlogs = () => {
   return (
     <div className="container py-1 mx-auto">
       <div className="px-1 my-1 md:text-xl md:px-10 text-gray-400">
-        Results for <span className="font-bold text-gray-200">{query}</span>
+        Results for <span className="font-bold text-gray-200">{tag ? tag : q}</span>
       </div>
       <div className=" grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 py-1">
         {blogs.length > 0 ? (

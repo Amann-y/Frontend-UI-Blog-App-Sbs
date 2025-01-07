@@ -3,12 +3,13 @@ import { useGlobalContext } from "../context/useUserContext";
 import Modal from "../utils/Modal";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import SavedBlogCard from "../components/savedBlogCard/SavedBlogCard";
 
 const UserInfo = () => {
   const { userName, userEmail, userid, uniqueUserName, saveBlogs } =
     useGlobalContext();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState("");
@@ -133,7 +134,8 @@ const UserInfo = () => {
     <>
       <section className="my-2 px-2 md:py-5 container mx-auto flex flex-col md:flex-row gap-2 py-2">
         <div className="basis-1/2 shadow-md rounded flex justify-center sm:justify-between gap-2 flex-wrap items-center text-xl md:text-2xl py-3 md:py-0">
-          <img
+         <div>
+         <img
             src={
               avatar
                 ? avatar
@@ -141,6 +143,18 @@ const UserInfo = () => {
             }
             alt="profile-image"
           />
+
+          <div className="mt-2">
+            <h1>Recommended Topics</h1>
+            <div className="flex flex-wrap items-center gap-2 py-1 w-full md:max-w-56">
+              {["Node js","Express js","Python", "Javascript", "MongoDb"].map((tag,index)=>{
+                return <Link key={index} className="bg-gray-400 rounded-md shadow-md p-1 hover:bg-slate-500 cursor-pointer" to={`/tag/${tag}`}>
+                  <p className="text-sm">{tag}</p>
+                </Link>
+              })}
+            </div>
+          </div>
+         </div>
           <div className="px-4 animate__animated animate__backInDown animate__slower mb-2 lg:mb-0">
             Namaste <span>{userName}</span>
           </div>

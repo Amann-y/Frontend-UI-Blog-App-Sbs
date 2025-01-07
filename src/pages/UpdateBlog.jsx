@@ -2,15 +2,19 @@ import React, { useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { MdCancel } from "react-icons/md";
 
 const UpdateBlog = () => {
   const location = useLocation();
+
   const [loading, setLoading] = useState(false);
+
   const [data, setData] = useState({
     title: location?.state?.title || "",
     categoryTitle: location?.state?.categoryTitle || "",
     description: location?.state?.description || "",
     imgUrl: location?.state?.imgUrl || "",
+    tags: location.state.tags || [],
   });
   const [imgFile, setImgFile] = useState(null); // Track the selected file
   const token = localStorage.getItem("Blog-Token");
@@ -25,6 +29,30 @@ const UpdateBlog = () => {
     const { name, value } = e.target;
     setData({ ...data, [name]: value });
   };
+
+  const handleKeyDown = (e) => {
+    if (e.code === "Enter" || e.code === "Comma") {
+      e.preventDefault(); // Prevent form submission
+  
+      const newTag = e.target.value.trim().toLowerCase();
+      if (newTag && !data.tags.includes(newTag) && data.tags.length < 10) {
+        setData((prevData) => ({
+          ...prevData,
+          tags: [...prevData.tags, newTag], // Add the new tag to the tags array
+        }));
+        e.target.value = ""; 
+      }
+    }
+  };
+  
+
+  const deleteTagHandler = (ind) => {
+    setData((prevData) => {
+      const updatedTags = prevData.tags.filter((_, index) => index !== ind);
+      return { ...prevData, tags: updatedTags };
+    });
+  };
+  
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -68,9 +96,12 @@ const UpdateBlog = () => {
       formData.append("title", data.title);
       formData.append("categoryTitle", data.categoryTitle);
       formData.append("description", data.description);
+      formData.append("tags", JSON.stringify(data.tags))
 
       const response = await axios.put(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/user-blog/${location?.state?._id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/user-blog/${
+          location?.state?._id
+        }`,
         formData,
         {
           headers: {
@@ -97,7 +128,11 @@ const UpdateBlog = () => {
         <h2 className="text-xl md:text-2xl font-bold md:mb-6 text-center animate__animated animate__slow animate__pulse animate__infinite dark:text-black">
           {location?.pathname === "/update-blog" ? "Update A Blog" : ""}
         </h2>
-        <form className="space-y-4" onSubmit={handleSubmit} encType="multipart/form-data">
+        <form
+          className="space-y-4"
+          onSubmit={handleSubmit}
+          encType="multipart/form-data"
+        >
           <div>
             <label
               htmlFor="title"
@@ -112,6 +147,7 @@ const UpdateBlog = () => {
               value={data.title}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:text-black"
               onChange={handleChange}
+              required
             />
           </div>
 
@@ -129,7 +165,44 @@ const UpdateBlog = () => {
               value={data.categoryTitle}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:text-black"
               onChange={handleChange}
+              required
             />
+          </div>
+
+          <div>
+            <label
+              htmlFor="tags"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Tags
+            </label>
+            <input
+              type="text"
+              id="tags"
+              name="tags"
+              className="mt-1 block w-full px-3 py-2 border dark:text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              onKeyDown={(e) => handleKeyDown(e)}
+            />
+            <div className="text-sm text-gray-500 mt-1 ">
+              Enter tags separated by commas (e.g., "tag1, tag2") & Enter to add
+              tags.
+              <p>{10 - data?.tags?.length} tags remaining</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1 my-1">
+              {data.tags.length > 0 &&
+                data.tags.map((ele, ind) => {
+                  return (
+                    <div
+                      key={ind}
+                      className="text-black flex items-center gap-2 border border-black rounded-full shadow-sm py-1 px-2 bg-gray-300 cursor-pointer hover:bg-violet-500 hover:text-white"
+                    >
+                      <div>{ele}</div>
+                      <MdCancel onClick={() => deleteTagHandler(ind)} />
+                    </div>
+                  );
+                })}
+            </div>
           </div>
 
           <div>
@@ -200,6 +273,3 @@ const UpdateBlog = () => {
 };
 
 export default UpdateBlog;
-
-
-

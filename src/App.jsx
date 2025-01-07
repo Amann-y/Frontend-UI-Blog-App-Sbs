@@ -55,6 +55,7 @@ const App = () => {
             <Route path="/update-blog" element={<UpdateBlog />} />
             <Route path="/user-blogs" element={<UserBlogs />} />
             <Route path="/user-info" element={<UserInfo />} />
+            <Route path="/tag/:tag" element={<SearchBlogs/>}/>
           </Route>
 
           <Route path="*" element={<NotFound />} />

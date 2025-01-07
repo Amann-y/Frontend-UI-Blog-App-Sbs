@@ -2,10 +2,12 @@ import React, { useState, useRef } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { MdCancel } from "react-icons/md";
 
 const CreateBlog = () => {
   const [loading, setLoading] = useState(false);
   const [fileError, setFileError] = useState(""); // State to store file errors
+  const [tags, setTags] = useState([]); // New state for tags array
   const location = useLocation();
 
   const refTitle = useRef(null);
@@ -22,7 +24,8 @@ const CreateBlog = () => {
 
   // Validate file size before submitting
   const validateFileSize = (file) => {
-    if (file && file.size > 500 * 1024) { // 500KB
+    if (file && file.size > 500 * 1024) {
+      // 500KB
       setFileError("File size exceeds the 500KB limit");
       return false;
     }
@@ -37,7 +40,8 @@ const CreateBlog = () => {
       !refTitle.current.value ||
       !refCategoryTitle.current.value ||
       !refDescription.current.value ||
-      !refImgFile.current.files[0] // Check if a file is selected
+      !refImgFile.current.files[0] || // Check if a file is selected
+      tags.length === 0 // Check if tags array is empty
     ) {
       return toast.error("All fields are required");
     }
@@ -52,6 +56,7 @@ const CreateBlog = () => {
     formData.append("title", refTitle.current.value);
     formData.append("description", refDescription.current.value);
     formData.append("categoryTitle", refCategoryTitle.current.value);
+    formData.append("tags", JSON.stringify(tags)); // Append tags as a JSON string
     formData.append("imgUrl", file); // Add the selected file
 
     try {
@@ -71,6 +76,7 @@ const CreateBlog = () => {
         refDescription.current.value = "";
         refCategoryTitle.current.value = "";
         refImgFile.current.value = ""; // Clear the file input
+        setTags([]); // Reset tags array
         toast.success(response?.data?.message);
         navigate("/"); // Redirect to homepage after successful blog creation
       }
@@ -81,13 +87,31 @@ const CreateBlog = () => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.code === "Enter") {
+      if (tags.length < 10 && e.target.value.trim() && !tags.includes(e.target.value.trim().toLowerCase())) {
+        setTags((prev) => [...prev, e.target.value.trim().toLowerCase()]);
+      }
+      
+    }
+  };
+
+  const deleteTagHandler = (ind)=>{
+    const filterTags = tags.filter((_, index)=> index!=ind)
+    setTags(filterTags)
+  }
+
   return (
     <div className="flex justify-center items-center my-2 mx-2">
       <div className="w-full max-w-xl p-4 bg-slate-200 rounded-lg shadow-lg">
         <h2 className="text-xl dark:text-black md:text-2xl font-bold md:mb-6 text-center animate__animated animate__slow animate__pulse animate__infinite">
           {location?.pathname === "/create-blog" ? "Create A Blog" : ""}
         </h2>
-        <form className="space-y-4" onSubmit={handleSubmit} encType="multipart/form-data">
+        <form
+          className="space-y-4"
+          onSubmit={handleSubmit}
+          encType="multipart/form-data"
+        >
           <div>
             <label
               htmlFor="title"
@@ -124,6 +148,39 @@ const CreateBlog = () => {
 
           <div>
             <label
+              htmlFor="tags"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Tags
+            </label>
+            <input
+              type="text"
+              id="tags"
+              name="tags"
+              className="mt-1 block w-full px-3 py-2 border dark:text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              onKeyDown={(e)=>handleKeyDown(e)}
+              required
+            />
+            <div className="text-sm text-gray-500 mt-1 ">
+              Enter tags separated by commas (e.g., "tag1, tag2") & Enter
+              to add tags.
+              <p>{10 - tags.length} tags remaining</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1 my-1">
+              {tags.length > 0 &&
+                tags.map((ele, ind) => {
+                  return (
+                    <div key={ind} className="text-black flex items-center gap-2 border border-black rounded-full shadow-sm py-1 px-2 bg-gray-300 cursor-pointer hover:bg-violet-500 hover:text-white">
+                      <div>{ele}</div>
+                      <MdCancel onClick={()=>deleteTagHandler(ind)} />
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          <div>
+            <label
               htmlFor="imgUrl"
               className="block text-sm font-medium text-gray-700"
             >
@@ -138,7 +195,9 @@ const CreateBlog = () => {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:text-black"
               required
             />
-            {fileError && <div className="text-sm text-red-500 mt-1">{fileError}</div>}
+            {fileError && (
+              <div className="text-sm text-red-500 mt-1">{fileError}</div>
+            )}
             <div className="text-sm text-gray-500 mt-1">
               Max file size: 500KB. Supported formats: .jpeg, .jpg, .png.
             </div>
@@ -183,5 +242,3 @@ const CreateBlog = () => {
 };
 
 export default CreateBlog;
-
-
