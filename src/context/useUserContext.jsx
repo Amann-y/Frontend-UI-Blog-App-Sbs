@@ -38,7 +38,7 @@ const AppProvider = ({ children }) => {
               },
             }
           );
-
+         
           const name = (response?.data?.user?.fullName.includes(" ")) ? response?.data?.user?.fullName : response?.data?.user?.fullName[0]
 
           if(response?.data?.user?.fullName){

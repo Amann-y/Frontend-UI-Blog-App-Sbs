@@ -5,11 +5,12 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import SavedBlogCard from "../components/savedBlogCard/SavedBlogCard";
+import { useEffect } from "react";
 
 const UserInfo = () => {
   const { userName, userEmail, userid, uniqueUserName, saveBlogs } =
     useGlobalContext();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState("");
@@ -17,6 +18,7 @@ const UserInfo = () => {
   const [showSavedBlogs, setShowSavedBlogs] = useState(false);
   const [savedBlogData, setSavedBlogData] = useState([]);
   const [loader, setLoader] = useState(false);
+  const [recommendedTags, setRecommendedTags] = useState([]);
 
   const openModal = useCallback(() => setIsModalOpen(true), []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
@@ -25,6 +27,29 @@ const UserInfo = () => {
   const token = localStorage.getItem("Blog-Token");
 
   const { removeUserData, avatar } = useGlobalContext();
+
+  useEffect(() => {
+    async function fetchBlogInfo() {
+      try {
+        const resp = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/user-blog`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (resp.data.success) {
+          setRecommendedTags(resp?.data?.blogs[0]?.tags);
+        }
+      } catch (error) {
+        // console.log(error);
+      }
+    }
+
+    fetchBlogInfo();
+  }, []);
 
   const handleUpdate = useCallback(async () => {
     if (password.trim() !== passwordConfirmation.trim()) {
@@ -134,27 +159,34 @@ const UserInfo = () => {
     <>
       <section className="my-2 px-2 md:py-5 container mx-auto flex flex-col md:flex-row gap-2 py-2">
         <div className="basis-1/2 shadow-md rounded flex justify-center sm:justify-between gap-2 flex-wrap items-center text-xl md:text-2xl py-3 md:py-0">
-         <div>
-         <img
-            src={
-              avatar
-                ? avatar
-                : "https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
-            }
-            alt="profile-image"
-          />
+          <div>
+            <img
+              src={
+                avatar
+                  ? avatar
+                  : "https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
+              }
+              alt="profile-image"
+            />
 
-          <div className="mt-2">
-            <h1>Recommended Topics</h1>
-            <div className="flex flex-wrap items-center gap-2 py-1 w-full md:max-w-56">
-              {["Node js","Express js","Python", "Javascript", "MongoDb"].map((tag,index)=>{
-                return <Link key={index} className="bg-gray-400 rounded-md shadow-md p-1 hover:bg-slate-500 cursor-pointer" to={`/tag/${tag}`}>
-                  <p className="text-sm">{tag}</p>
-                </Link>
-              })}
+            <div className="mt-2">
+              <h1>Recommended Topics</h1>
+              <div className="flex flex-wrap items-center gap-2 py-1 w-full md:max-w-56">
+                {recommendedTags.length > 0 &&
+                  recommendedTags.map((tag, index) => {
+                    return (
+                      <Link
+                        key={index}
+                        className="bg-gray-400 rounded-md shadow-md p-1 hover:bg-slate-500 cursor-pointer"
+                        to={`/search?search=${tag}`}
+                      >
+                        <p className="text-sm">{tag}</p>
+                      </Link>
+                    );
+                  })}
+              </div>
             </div>
           </div>
-         </div>
           <div className="px-4 animate__animated animate__backInDown animate__slower mb-2 lg:mb-0">
             Namaste <span>{userName}</span>
           </div>
@@ -256,7 +288,13 @@ const UserInfo = () => {
             <p>No saved blogs yet</p>
           ) : (
             <>
-              {savedBlogData ? <h1  className="text-center my-1 font-semibold">Saved Blogs</h1> : <h1  className="text-center my-1 font-semibold">No Saved Blog</h1>}
+              {savedBlogData ? (
+                <h1 className="text-center my-1 font-semibold">Saved Blogs</h1>
+              ) : (
+                <h1 className="text-center my-1 font-semibold">
+                  No Saved Blog
+                </h1>
+              )}
               <div className="flex items-center flex-wrap justify-center gap-4 py-2 px-2">
                 {savedBlogData.map((blog) => (
                   <SavedBlogCard key={blog._id} blogData={blog} />
